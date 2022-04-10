@@ -1,5 +1,5 @@
-# CS - 474 | Homework 3 | Due: 03/26/2022
-### Description: using a language for users of the set theory that you created in Homework 1 and Homework 2 add constructs for abstract classes and interfaces that supports limited inheritance and interface implementation.
+# CS - 474 | Homework 4 | Due: 04/11/2022
+### Description: using a language for users of the set theory that you created in the previous homeworks add constructs for control structures and exception handling using lazy evaluation and call-by-name.
 
 ## Name: Samihan Nandedkar
 ### UIN: 667142409
@@ -26,8 +26,7 @@ The project and be compiled and run two ways.
 ### Project Description
 
 The main aim of the project is to create a Domain Specific Language using Scala to perform the various set operations.
-The user will be able to create Abstract classes with fields, constructor & Abstract methods in addition to the class definition. The user will be able to assign the access level for methods and fields as public, private & protected. 
-The user will be able to declare Interface and create classes which implements from this Interface. 
+
 
 ### Project Structure
 * All the language descriptions are present in `SetLangDSL` file present in com.samihan.hw1 package.
