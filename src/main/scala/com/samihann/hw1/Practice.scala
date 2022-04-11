@@ -11,6 +11,39 @@ object Practice:
 
 
     /***
+     * Homework 4
+     *
+     * Practice Code
+     *
+     */
+
+    // Sample Code for conditional statement
+    Assign("conditionSet1", Value(1), Value(2), Value(3)).eval()
+
+    IfConditionalStatement(ConditionalCheck(Variable("conditionSet1"), Value(2)),
+      Then(Insert(Variable("conditionSet1"), Value(6))),
+      Else(Insert(Variable("conditionSet1"), Value(5)))
+    ).eval()
+    println("Conditional Statement: " +Variable("conditionSet1").eval())
+
+    // Sample Code for exception handling
+
+    ExceptionClassDef("FirstException", Field("Reason")).eval()
+
+    val exceptionResult = Scope("hello",CatchException("FirstException",
+      Assign("var1", Value(11), Value(200)),
+      IfConditionalStatement(ConditionalCheck(Variable("var1"), Value(12)),
+        Then(Insert(Variable("var1"), Value(2))),
+        Else(ThrowException("FirstException",Assign("Reason",Value("This is a reason"))))
+      ),
+      Insert(Variable("var1"), Value(12)),
+      Catch(Variable("FirstException"),Insert(Variable("var1"), Value(12222)))
+    )).eval()
+
+    println("Final Output for exception sample code.: " + exceptionResult)
+
+
+    /***
      *
      * Homework 3
      *

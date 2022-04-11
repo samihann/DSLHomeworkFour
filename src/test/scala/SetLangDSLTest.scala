@@ -9,6 +9,132 @@ import scala.collection.mutable.{ListBuffer, Set}
 class SetLangDSLTest extends AnyFunSpec{
 
   /***
+   * HOMEWORK 4 TEST CASES
+   *
+   *
+   *
+   *
+   */
+
+  // Test Case 1
+  describe("HW4 - IfConditionalStatement condition - thenClause execution") {
+    it("Condition Returns true, Then operations should be executed") {
+      Assign("ifTestSetOne", Value(1), Value(2), Value(3)).eval()
+      IfConditionalStatement(ConditionalCheck(Variable("ifTestSetOne"), Value(2)),
+        Then(Insert(Variable("ifTestSetOne"), Value(6))),
+        Else(Insert(Variable("ifTestSetOne"), Value(5)))
+      ).eval()
+      val result = Variable("ifTestSetOne").eval()
+      assert(result == scala.collection.mutable.Set(1,2,3,6))
+
+    }
+  }
+
+  // Test case 2
+  describe("HW4 - IfConditionalStatement condition - elseClause execution") {
+    it("Condition Returns false, ELse operations should be executed") {
+      Assign("ifTestSetTwo", Value(1), Value(2), Value(3)).eval()
+      IfConditionalStatement(ConditionalCheck(Variable("ifTestSetTwo"), Value(5)),
+        Then(Delete(Variable("ifTestSetTwo"), Value(2))),
+        Else(Insert(Variable("ifTestSetTwo"), Value(5)))
+      ).eval()
+      val result = Variable("ifTestSetTwo").eval()
+      assert(result == scala.collection.mutable.Set(1,2,3,5))
+    }
+  }
+
+  // Test case 3
+  describe("HW4 - CatchException: Exceptions Caught") {
+    it("Exception should be raised and last statement should not be executed") {
+
+      ExceptionClassDef("ExceptionOne", Field("Reason")).eval()
+      val errorFound = CatchException("ExceptionOne",
+        Assign("exceptionSet1", Value(1), Value(2), Value(3)),
+        // Throw an error if data is not present.
+        ThrowException("ExceptionOne", Assign("Reason", Value("The data is not present in Set"))),
+        Delete(Variable("exceptionSet1"), Value(4)),
+      ).eval()
+      assert(errorFound == "EXCEPTION RAISED: The data is not present in Set")
+    }
+  }
+
+  // Test case 4
+  describe("HW4 - CatchException: Exceptions Caught") {
+    it("Exception should be raised and catch block should be executed") {
+
+      ExceptionClassDef("ExceptionTwo", Field("Reason")).eval()
+      Assign("exceptionSet2", Value(1), Value(2), Value(3)).eval()
+      val errorFound2 = CatchException("ExceptionTwo",
+        // Throw an error if data is not present.
+        ThrowException("ExceptionTwo", Assign("Reason", Value("Data is not present."))),
+        Delete(Variable("exceptionSet2"), Value(4)),
+        // Catch
+        Catch(Variable("ExceptionTwo"), Insert(Variable("exceptionSet2"), Value(100)))
+      ).eval()
+      assert(errorFound2 == "EXCEPTION RAISED: Data is not present.")
+      assert(Variable("exceptionSet2").eval() == scala.collection.mutable.Set(1,2,3,100))
+    }
+  }
+
+  // Test case 5
+  describe("HW4 - CatchException: Exceptions Caught") {
+    it("Exception should be raised according to if else block") {
+
+      ExceptionClassDef("ExceptionThree", Field("Reason")).eval()
+      val errorFound3 = CatchException("ExceptionThree",
+        Assign("exceptionSet3", Value(1), Value(2), Value(3)),
+        IfConditionalStatement(ConditionalCheck(Variable("exceptionSet3"), Value(5)),
+          Then(Delete(Variable("exceptionSet3"), Value(2))),
+          Else(ThrowException("ExceptionThree", Assign("Reason",Value("Value 5 not present"))))
+        ),
+        Insert(Variable("exceptionSet3"), Value(6)),
+        Catch(Variable("ExceptionThree"), Insert(Variable("exceptionSet3"), Value(5)))
+      ).eval()
+      assert(errorFound3 == "EXCEPTION RAISED: Value 5 not present")
+      assert(Variable("exceptionSet3").eval() == scala.collection.mutable.Set(1,2,3,5))
+
+    }
+  }
+
+  // Test Case 6
+  describe("HW4 - ThrowException: Update the field for class") {
+    it("should update the Reason field for the exception class successfully") {
+      ExceptionClassDef("ExceptionFour", Field("Reason")).eval()
+      val result = ThrowException("ExceptionFour", Assign("Reason",Value("THis is a Test exception"))).eval()
+      assert(result == "THis is a Test exception" )
+    }
+  }
+
+  // Test Case 7
+  describe("HW4 - ConditionalCheck validation ") {
+    it("should return true") {
+      Assign("checkSet1", Value(1), Value(2), Value(3)).eval()
+      val newResult =  ConditionalCheck(Variable("checkSet1"), Value(2)).eval()
+      assert(newResult == true )
+    }
+  }
+
+  // Test Case 8
+  describe("HW4 - ConditionalCheck validation ") {
+    it("should return false") {
+      Assign("checkSet2", Value(1), Value(2), Value(3)).eval()
+      val newResult =  ConditionalCheck(Variable("checkSet2"), Value(5)).eval()
+      assert(newResult == false )
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+  /***
    * HOMEWORK 3 TEST CASES
    *
    *

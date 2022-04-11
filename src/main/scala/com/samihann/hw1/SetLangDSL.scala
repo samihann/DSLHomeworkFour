@@ -7,6 +7,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.compiletime.ops.int.-
 import scala.language.postfixOps
+import java.util.concurrent.atomic.AtomicBoolean
 
 // The main object where all the definitions are stored for various methods of the language.
 object SetLangDSL:
@@ -37,6 +38,14 @@ object SetLangDSL:
 
   // interface binding scope to map the interface definitions
   private val interfaceBindingScope: scala.collection.mutable.Map[Any, Any] = scala.collection.mutable.Map()
+
+
+  // Exception CLass binding scope to map the interface definitions
+  private val exceptionBindingScope: scala.collection.mutable.Map[Any, Any] = scala.collection.mutable.Map()
+
+
+  // An atomic boolean is defined to keep track if the exception is thrown. Initial Value is set to false.
+  private val isExceptionCaught: AtomicBoolean = new AtomicBoolean(false);
 
 
 
@@ -105,6 +114,18 @@ object SetLangDSL:
     case AbstractClassDef(name: String, operations: SetDeclarations*)
     case AbstractMethod(name: String, params: AnyListType)
     case InterfaceDecl(name: String, operations: SetDeclarations*)
+
+
+    // Homework Four
+    // Conditional Statements
+    case IfConditionalStatement(condition: SetDeclarations, thenClause: SetDeclarations, elseClause: SetDeclarations)
+    case Then (operations: SetDeclarations*)
+    case Else (operations: SetDeclarations*)
+    case ExceptionClassDef(name: String, operations: SetDeclarations)
+    case ThrowException(name: String, operation: SetDeclarations.Assign)
+    case CatchException(name: String, operations: SetDeclarations*)
+    case Catch(exception: SetDeclarations, operations: SetDeclarations*)
+    case ConditionalCheck(setName: SetDeclarations, toCheckValue: SetDeclarations)
 
 
 
@@ -861,6 +882,138 @@ object SetLangDSL:
             return true
           }
 
+
+        // Conditional statement definition.
+        // It will accept a conditional statement and a then clause and a else clause
+        // If condition is true it will run then clause else it will run the else clause.
+        case IfConditionalStatement(condition, thenClause, elseClause) =>
+          val conditionReturn = condition.asInstanceOf[SetDeclarations].eval()
+          conditionReturn match {
+            case true => thenClause.asInstanceOf[SetDeclarations].eval()
+            case _ => elseClause.asInstanceOf[SetDeclarations].eval()
+          }
+
+        // Then clause definition.
+        // To be run if the condition provided returns a true.
+        // It will loop through all the operation and execute if the exception is not thrown.
+        case Then(operations*) =>
+          operations.foreach(i => {
+            val op = i.asInstanceOf[SetDeclarations];
+            // Checking if the op is of type ThrowException.
+            // It will evaluate the operation then it will set the isExceptionCaught as true.
+            if(op.isInstanceOf[SetDeclarations.ThrowException]){
+              op.eval()
+              isExceptionCaught.set(true)
+            }
+            // It will evaluate the expression if the exeption is not thrown in previous statments.
+            else if (!isExceptionCaught.get()) {
+              val z = op.eval();
+              if (i == operations.last) {
+                // Returning the result of the last operation passed to the function.
+                return z
+              }
+            }
+          })
+
+        // Else clause definition.
+        // To be run if the condition provided returns a false.
+        // It will loop through all the operation and execute if the exception is not thrown.
+        case Else(operations*) =>
+          operations.foreach(i => {
+            val op = i.asInstanceOf[SetDeclarations];
+            // Checking if the op is of type ThrowException.
+            // It will evaluate the operation then it will set the isExceptionCaught as true.
+            if(op.isInstanceOf[SetDeclarations.ThrowException]){
+              op.eval()
+              isExceptionCaught.set(true)
+            }
+            // It will evaluate the expression if the exception is not thrown in previous statements.
+            else if (!isExceptionCaught.get()) {
+              val z = op.eval();
+              if (i == operations.last) {
+                // Returning the result of the last operation passed to the function.
+                return z
+              }
+            }
+          })
+
+        //Defining the Exception CLass with taking fields as input.
+        case ExceptionClassDef(name, operation) =>
+          val tempMap = scala.collection.mutable.Map[Any,Any]()
+          val op = operation.asInstanceOf[SetDeclarations]
+          if(op.isInstanceOf[SetDeclarations.Field]){
+            val fieldName = op.eval()
+            tempMap += (fieldName -> null)
+          }
+          // It creates a temp map with assigning each field null value and adds it to exceptionBindingScope.
+          exceptionBindingScope += (name -> tempMap)
+
+        // ThrowException definition.
+        // It updates the null value with the provided value of reason.
+        case ThrowException(name, operation) =>
+          val a = operation.eval(mapToUse = exceptionBindingScope(name).asInstanceOf[AnyMapType])
+          isExceptionCaught.set(true)
+          return a
+
+
+
+        // CatchExpression definition
+        // TRY block equivalent
+        // It will evaluate expression one by one and look for any exception that are thrown.
+        case CatchException(name, operations*) =>
+          // Keeping track if exception is encountered in this block of code
+          val trackIfExceptionFlag = new AtomicBoolean(false)
+          // Looping though operations.
+          operations.foreach(i => {
+            val op = i.asInstanceOf[SetDeclarations]
+            // Checking if op is of type ThrowException
+            if (op.isInstanceOf[SetDeclarations.ThrowException]){
+              op.eval()
+              trackIfExceptionFlag.set(true)
+            }
+            // Check if the exception is not caught and op is not of type Catch & ThrowException
+            else if(!isExceptionCaught.get()){
+              if(!op.isInstanceOf[SetDeclarations.Catch] && !op.isInstanceOf[SetDeclarations.ThrowException]){
+                val z = op.eval()
+              }
+            }
+            // Checking if the exception is caught and Catch is found.
+            else if (isExceptionCaught.get() && op.isInstanceOf[SetDeclarations.Catch]){
+              Assign(name, Value(exceptionBindingScope(name).asInstanceOf[AnyMapType]("Reason"))).eval()
+              val z = op.eval()
+              trackIfExceptionFlag.set(true)
+            }
+          })
+          // Return the exception reason if caught else return success message.
+          if(trackIfExceptionFlag.get()){
+            val returnValue = "EXCEPTION RAISED: " + exceptionBindingScope(name).asInstanceOf[AnyMapType]("Reason")
+            return returnValue
+          } else {
+            return "Success"
+          }
+
+        //Catch definition
+        // It will loop through all the expression and return custom message.
+        case Catch(exception, operations*) =>
+          val exceptionName = exception.eval()
+          operations.foreach(i => {
+            val op = i.asInstanceOf[SetDeclarations]
+            val z = op.eval()
+          })
+          isExceptionCaught.set(false);
+          val returnText = "EXCEPTION: " + exceptionName + "| Catch Block Successfull."
+          return exceptionName
+
+        // This will be used to perform a conditional check and return true or false
+        case ConditionalCheck(setName, toCheckValue ) =>
+          if (setName.eval(mapToUse) != "!!!Error!!!") {
+            val checkResult = setName.eval(mapToUse).asInstanceOf[scala.collection.mutable.Set[Any]].contains(toCheckValue.eval(mapToUse))
+            return checkResult
+          }
+          else {
+            return false
+          }
+
         case _ =>
           println("ERROR: Unknown Function Executed")
           return "!!ERROR!!"
@@ -965,6 +1118,10 @@ object SetLangDSL:
           val op = operation.scopeEval(scopeName).asInstanceOf[SetDeclarations]
           val mac = Macro(sName, op)
           mac
+
+        case CatchException(name, operations*) =>
+          val c = CatchException(name, operations*)
+          c
 
         // Return the ImpMacro function with unique parameters
         case ImpMacro(operation) =>

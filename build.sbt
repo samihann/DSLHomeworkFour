@@ -11,9 +11,6 @@ val scalacticVersion = "3.2.9"
 
 
 libraryDependencies ++= Seq(
-  "ch.qos.logback" % "logback-core" % logbackVersion,
-  "ch.qos.logback" % "logback-classic" % logbackVersion,
-  "org.slf4j" % "slf4j-api" % sfl4sVersion,
   "org.scalatest" %% "scalatest" % scalacticVersion % Test,
   "org.scalatest" %% "scalatest-featurespec" % scalacticVersion % Test,
 )

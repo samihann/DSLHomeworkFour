@@ -26,7 +26,9 @@ The project and be compiled and run two ways.
 ### Project Description
 
 The main aim of the project is to create a Domain Specific Language using Scala to perform the various set operations.
-
+The user will be able to create Conditional Statements by specifying the condition, then and else clause. 
+In addition the user will be able to create ExceptionClass, throw Exception and run a different block of code whenever
+exception is caught.
 
 ### Project Structure
 * All the language descriptions are present in `SetLangDSL` file present in com.samihan.hw1 package.
@@ -45,91 +47,300 @@ import com.samihann.hw1.SetLangDSL.SetDeclarations.*
 
 <hr/>
 
-### Implementation: Reasoning, Implementation and Logic
+### Implementation: Logic and Implementation
 
-From this homework we wanted to address following questions and build logic to satisfy the reasoning. 
+1. IfConditionalStatement:
 
-#### Questions & Implementation Done
+* If statements accepts three parameter: condition, thenClause, elseClause
+* Condition expression will be evaluated.
+* If it returns true then thenClause is executed 
+* If it returns false then elseClause is executed
 
-1. Can a class/interface inherit from itself?
+2. Then:
 
-  * A class/interface cannot inherit from itself. As such a inheritance server no purpose as the same attributes will be replicated.
-  * In this implementation the Extends/Implements performs check as the beginning of the function to restrict the self inheritance.
+* Then statement contains a list of operations which will be executed one by one.
+* If the conditional statement is used inside a CatchExpression, then it will check if ThrowExpression is passed as operation then it will set the `isExceptionCaught` flag as true.
 
-2. Can an interface inherit from an abstract class with all pure methods?
+3. Else:
 
-* Interface can only inherit from other interfaces as interfaces only provides signatures not implementations. If the interface inheriting a class inherited its implementation, it would provide implementation and no longer be an interface.
-* In this implementation, the inheritance is restricted in Implements where if the child component's type is interface then the parent should be of type interface as well. 
-
-3. Can an interface implement another interface?
-
-* Interface only provides signatures not implementations. So an interface cannot implement another interface.
-* In this implementation, the Interface only accepts AbstractMethods in its definition. So, the user will not be able to pass a Method to Interface which is able to perform implementation.
-
-4. Can a class implement two or more different interfaces that declare methods with exactly the same signatures?
-
-* A class is able to implement multiple interfaces that have methods with same signatures. If the class definition can override the multiple methods.
-* In this implementation the overwritten methods for an inheritance are kept track using Virtual Dispatch Table, which is a map pointing to the correct method to invoke whenever called.
-
-5. Can an abstract class implement interfaces?
-
-* An abstract class is able to implement interfaces. 
-* In this implementation the abstract class can have method definitions. As the abstract class can contain method definition, it can be overwritten during the declaration.
-
-6. Can a class implement two or more interfaces that have methods whose signatures differ only in return types?
-
-* A class is not able to implement two of more interface that have methods whose signatures differ only in return types. 
-* In this implementation, multiple inheritance is restricted. To keep track a "inheritance" parameter declared in the classBindingScopeMap.
-
-7. Can an abstract class inherit from a concrete class?
-
-* An abstract class can inherit from a concrete class. 
-* In this implementation, an abstract can be inherited from a concrete class as all the Public & Protected attributes and methods are added to abstract class definition in Extends function.
-
-8. Can an abstract class/interface be instantiated as anonymous concrete classes?
-
-* An abstract class or interface by definition cannot be instantiated. 
-* In this implementation, NewObject performs the check which restricts the Interface and AbstractClass to create a object.  
+* Then statement contains a list of operations which will be executed one by one.
+* If the conditional statement is used inside a CatchExpression, then it will check if ThrowExpression is passed as operation then it will set the `isExceptionCaught` flag as true.
 
 
-#### Logic Used
+4. CatchException:
 
-1. AbstractClassDef:
+* This statement is equivalent to Java's Try statement. 
+* It will accept the name of exception class that it wants to catch as first parameter. 
+* Then it will accept multiple operations of type as SetDeclaration which are evaluated one by one.
+* Before each evaluation it checks if a exception is caught which is kept track using `isExceptionCaught` atomic boolean. 
+* If the `isExceptionCaught` set true, then it will not evaluate any further statement until Catch statement is evaluated.
+* It will finally return Success or Exception Caught message. 
 
-* Abstract class definition can accept name, fields, constructor, methods & abstract methods as parameter to the function. 
-* It will create a map with "name", "methods", "fields", "abstractMethods", "abstractDef" keys.
-* It will assign create respective maps for each of the attributes and methods and assign to the keys in the map. 
-* It will assign "abstractDef" key true value which will be used over the implementation to signify the class as abstract.
-* It will perform the check to see that at least one of the operations passed is AbstractMethod. Else it will return an error.
-* It will add the map to classBindingScope.
+5. ExceptionClassDef:
 
-2. AbstractMethod:
+* ExceptionClassDef accepts name of the class as first parameter and Field operation signifying the fields to be created in the map. 
+* It creates a tempMap with pointing all the field values null. 
+* It will then update the global exceptionBindingScope with name as the key and tempMap as value. 
 
-* Abstract Methods can accept name, params as the input parameter to function. 
-* It will not have body, hence no operation is accepted.
+6. ThrowException:
 
-3. Interface:
+* ThrowException accepts the name of exception class first parameter and a second parameter will be Assign statement setting the value of exception class' field with value to be returned. 
+* It updates the value of field with the value specified in Assign.
 
-* Interface definition can accept name, fields, constructor & abstract methods as parameter to the function.
-* It will create a map with "name", "fields", "abstractMethods" keys.
-* It will assign create respective maps for each of the attributes and methods and assign to the keys in the map.
-* It will add the map to interfaceBindingScope.
+7. Catch:
 
-4. Inheritance:
+* Catch statement will accept the exception variable as first parameter, then it can accept variable number of parameter as input. 
+* There operation will be evaluated one by one once completed it will return a custom message. 
 
-* Extends & Implements are the function used to inherit a Class & Interface respectively. 
-* It will perform the check to see if all the abstract method in parent class/interface is implemented. 
-* It will add the overwritten methods to VirtualDispatchTable to keep track of the methods to invoke. 
-* It will copy the public and protected methods and attributes to the child class. 
+### SetLandDSL: IfConditionalStatement, ExceptionClassDef, ThrowException, CatchException & Catch
 
-5. Virtual Dispatch Table:
+Quick glance of list of commands to create abstract class & methods, interface and to inherit from Abstract Class and Interface Declaration.
 
-* Virtual Dispatch Table will keep track of the overwritten methods in Extends and Implements.
-* This mapping will be used by InvokeMethod to evaluate the correct Method whenever called.
+<table>
+<thead>
+<tr>
+<td>
+<b>Syntax</b>
+</td>
+<td>
+<b>Parameters</b>
+</td>
+<td>
+<b>Usage</b>
+</td>
+</tr>
+</thead>
+<tbody>
 
-6. NewObject:
 
-* NewObject perform the additional check to restrict Interface & Object from creating objects.
+
+<tr>
+<td>
+IfConditionalStatement(condition: SetDeclarations, thenClause: SetDeclarations, elseClause: SetDeclarations)
+</td>
+<td>
+1. condition <br/>
+Type: SetDeclarations.ConditionalCheck <br/>
+2. thenClause <br/>
+Type: SetDeclarations.Then <br/>
+3. elseClause <br/>
+Type: SetDeclaration.Else
+</td>
+<td>
+ IfConditionalStatement(ConditionalCheck(Variable("var1"), Value(11)), <br/>
+        Then(Insert(Variable("var1"), Value(2))), <br/>
+        Else(Insert(Variable("var1"), Value(3)))
+        ).eval()
+</td>
+</tr>
+
+<tr>
+<td>
+Then(operations: SetDeclarations*)
+</td>
+<td>
+1. operations <br/>
+Type: SetDeclarations <br/>
+Multiple parameters accepted for operations
+</td>
+<td>
+Then(Insert(Variable("var1"), Value(2)))
+<br/>
+Note: SHould be defined in IfConditionaStatement
+</td>
+</tr>
+
+<tr>
+<td>
+Else (operations: SetDeclarations*)
+</td>
+<td>
+1. operations <br/>
+Type: SetDeclations <br/>
+Multiple Parameters accepted for operations
+</td>
+<td>
+Else(Insert(Variable("var1"), Value(3)))
+<br/>
+Note: SHould be defined in IfConditionaStatement
+</td>
+</tr>
+
+<tr>
+<td>
+ExceptionClassDef(name: String, operations: SetDeclarations)
+</td>
+<td>
+1. name <br/>
+Type: String <br/>
+2. operations <br/>
+Type: SetDeclaration.Field <br/>
+</td>
+<td>
+ExceptionClassDef("FirstException", Field("Reason")).eval()
+</td>
+</tr>
+
+<tr>
+<td>
+ThrowException(name: String, operation: SetDeclarations.Assign)
+</td>
+<td>
+1. name <br/>
+Type: String <br/>
+2. operation <br/>
+Type: SetDeclarations.Assign <br/>
+</td>
+<td>
+ThrowException("FirstException",Assign("Reason",Value("This is a reason")))
+</td>
+</tr>
+
+<tr>
+<td>
+CatchException(name: String, operations: SetDeclarations*) <br/> <br/>
+
+Note: This whole block of code can be passed inside a Scope to create a scope as shown in example code below. 
+</td>
+<td>
+1. name <br/>
+Type: String <br/>
+2. operations <br/>
+Type: SetDeclarations <br/>
+Multiple Parameters accepted for operations 
+</td>
+<td>
+CatchException("FirstException", <br/>
+      Assign("var1", Value(11), Value(200)),<br/>
+      IfConditionalStatement(ConditionalCheck(Variable("var1"), Value(11)),<br/>
+        Then(Insert(Variable("var1"), Value(2))),<br/>
+        Else(ThrowException("FirstException",Assign("Reason",Value("This is a reason"))))<br/>
+        ),
+      Insert(Variable("var1"), Value(12)),<br/>
+      Catch(Variable("FirstException"),Insert(Variable("var1"), Value(12222)))<br/>
+    ).eval()
+
+</td>
+</tr>
+
+<tr>
+<td>
+Catch(exception: SetDeclarations, operations: SetDeclarations*)
+</td>
+<td>
+1. exception <br/>
+Type: SetDeclarations <br/>
+2. operations <br/>
+Type: SetDeclarations <br/>
+Multiple Parameters accepted for operations
+</td>
+<td>
+Catch(Variable("FirstException"),Insert(Variable("var1"), Value(12222))
+</td>
+</tr>
+
+
+<tr>
+<td>
+ConditionalCheck(setName: SetDeclarations, toCheckValue: SetDeclarations)
+</td>
+<td>
+1. setName <br/>
+Type: SetDeclarations <br/>
+2. toCheckValue <br/>
+Type: SetDeclarations.Value <br/>
+</td>
+<td>
+ConditionalCheck(Variable("var1"), Value(11)
+</td>
+</tr>
+
+
+</tbody>
+</table>
+
+### Sample Code. (Code can be found in this /src/main/scala/Practice.scala)
+
+* Conditional Statement
+
+![img.png](Docs/conditional.png)
+
+* Exception Handling
+
+![img_1.png](Docs/exception.png)
+
+
+<hr/>
+
+### Syntax : Detailed Syntax. (Code can be found in this /src/main/scala/Practice.scala)
+
+1. IfConditionalStatement
+
+```
+IfConditionalStatement(ConditionalCheck(Variable("conditionSet1"), Value(2)),
+      Then(Insert(Variable("conditionSet1"), Value(6))),
+      Else(Insert(Variable("conditionSet1"), Value(5)))
+    ).eval()
+```
+
+2. Then
+
+```
+Then(Insert(Variable("conditionSet1"), Value(6)))
+```
+
+3. Else
+
+```
+Else(Insert(Variable("conditionSet1"), Value(5)))
+```
+
+4. ExceptionClassDef
+
+```
+ExceptionClassDef("FirstException", Field("Reason")).eval()
+```
+
+5. ThrowException
+
+```
+ThrowException("FirstException",Assign("Reason",Value("This is a reason")))
+```
+
+6. Catch
+
+```
+ Catch(Variable("FirstException"),Insert(Variable("var1"), Value(12222)))
+```
+
+7. CatchExpression
+
+```
+CatchException("FirstException",
+      Assign("var1", Value(11), Value(200)),
+      IfConditionalStatement(ConditionalCheck(Variable("var1"), Value(12)),
+        Then(Insert(Variable("var1"), Value(2))),
+        Else(ThrowException("FirstException",Assign("Reason",Value("This is a reason"))))
+      ),
+      Insert(Variable("var1"), Value(12)),
+      Catch(Variable("FirstException"),Insert(Variable("var1"), Value(12222)))
+    ).eval()
+```
+
+8. CatchExpression (Inside a Scope)
+
+```
+Scope("hello",CatchException("FirstException",
+      Assign("var1", Value(11), Value(200)),
+      IfConditionalStatement(ConditionalCheck(Variable("var1"), Value(12)),
+        Then(Insert(Variable("var1"), Value(2))),
+        Else(ThrowException("FirstException",Assign("Reason",Value("This is a reason"))))
+      ),
+      Insert(Variable("var1"), Value(12)),
+      Catch(Variable("FirstException"),Insert(Variable("var1"), Value(12222)))
+    )).eval()
+```
+
 
 <hr/>
 
@@ -249,18 +460,6 @@ Note: AbstractClass inheritance requires ClassDef to override all the abstract m
 
 </tbody>
 </table>
-
-### Sample Code. (Code can be found in this /src/main/scala/Practice.scala)
-
-* Abstract Class
-
-![img.png](Docs/imgNew.png)
-
-* Interface
-
-![img_1.png](Docs/img_1New.png)
-
-
 
 
 ### SetLangDSL: Class, Object, Inheritance Syntax
@@ -726,67 +925,12 @@ GetScopeVariable("scope1", "varSet1" ).eval() -> (2,3,5)<br/>
 
 </table>
 
-### Syntax : Detailed Syntax. (Code can be found in this /src/main/scala/Practice.scala)
-
-1. CLassDef
-
-```
-ClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Value(1))), Public(Method("method1", ListBuffer("p1", "p2"), Union(Variable("p1"), Variable("p2"))))).eval()
-```
-
-2. NewObject
-
-```
-NewObject("object1", "class1").eval()
-```
-
-3. RetreiveFeild
-
-```
-RetrieveField("object1", "field1").eval()
-```
-
-4. Inheritance
-
-```
-ClassDef("parentClass2", Protected(Field("parentField2")), Constructor(Assign("parentField2", Value(1)))).eval()
-ClassDef("childClass2", Public(Field("childField2")), Constructor(Assign("childField2", Value(2)))) Extends "parentClass2"
-```
-
-5. Private, Public & Protected
-```
-Protected(Field("parentField2"))
-Public(Field("parentField2"))
-Private(Field("parentField2"))
-```
-
-6. Field
-```
-Field("parentField2")
-```
-
-7. Method
-```
-Method("method1", ListBuffer("p1", "p2"), Union(Variable("p1"), Variable("p2"))
-```
-
-8. Constructor
-```
-Constructor(Assign("field1", Value(1)))
-```
-
-9. Invoke Method
-
-```
-InvokeMethod("object2", "method2", Assign("p3", Value(1), Value(2), Value(3)), Assign("p4", Value(1), Value(4))).eval()
-```
 
 
 ### Test Cases
 
 * Test Cases are present in `/src/test/scala/SetLangDSLTest.scala`
 
-![img_2.png](Docs/img_2New.png)
 
 * Through Command Line
   * Clone the following repository in your system.
